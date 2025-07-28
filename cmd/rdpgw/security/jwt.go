@@ -33,9 +33,18 @@ type customClaims struct {
 	AccessToken  string `json:"accessToken"`
 }
 
+type customAccessTokenClaims struct {
+	AppDisplayName string `json:"app_displayname"`
+	AppID     string `json:"appid"`
+	UserID  string `json:"oid"`
+	Email  string `json:"unique_name"`
+	GivenName string `json:"given_name"`
+}
+
 func CheckSession(next protocol.CheckHostFunc) protocol.CheckHostFunc {
 	return func(ctx context.Context, host string) (bool, error) {
 		tunnel := getTunnel(ctx)
+
 		if tunnel == nil {
 			return false, errors.New("no valid session info found in context")
 		}
@@ -47,6 +56,7 @@ func CheckSession(next protocol.CheckHostFunc) protocol.CheckHostFunc {
 
 		// use identity from context rather then set by tunnel
 		id := identity.FromCtx(ctx)
+		log.Printf("jwt.CheckSession: username: %s, display name: %s, sessionId: %s, email: %s", id.UserName(), id.DisplayName(), id.SessionId(), id.Email())
 		if VerifyClientIP && tunnel.RemoteAddr != id.GetAttribute(identity.AttrClientIp) {
 			log.Printf("Current client ip address %s does not match token client ip %s",
 				id.GetAttribute(identity.AttrClientIp), tunnel.RemoteAddr)
@@ -108,7 +118,47 @@ func CheckPAACookie(ctx context.Context, tokenString string) (bool, error) {
 
 	tunnel.TargetServer = custom.RemoteServer
 	tunnel.RemoteAddr = custom.ClientIP
-	tunnel.User.SetUserName(user.Subject)
+
+	id := identity.FromCtx(ctx)
+	enrichWithOIDC(id, user, custom.AccessToken)
+	id.SetAuthenticated(true)
+	tunnel.User = id
+
+	return true, nil
+}
+
+func enrichWithOIDC(id identity.Identity, userInfo *oidc.UserInfo, accessTokenStr string) (bool, error) {
+	var claims map[string]interface{}
+	if err := userInfo.Claims(&claims); err != nil {
+		log.Printf("Error decoding userInfo: %v", err)
+		return false, errors.New("failed to decode oidc claims.")
+	}
+
+	for key, value := range claims {
+		log.Printf("\tenrichWithOIDC: %s: %v\n", key, value)
+	}
+
+	token, err := jwt.ParseSigned(accessTokenStr, []jose.SignatureAlgorithm{jose.RS256})
+	if err != nil {
+		log.Printf("Error parsing accessToken: %v", err)
+		return false, err
+	}
+
+	standard := jwt.Claims{}
+	custom := customAccessTokenClaims{}
+
+	// This token either has an invalid signature, or the key to check is something something microsoft, idk
+	err = token.UnsafeClaimsWithoutVerification(&standard, &custom)
+	if err != nil {
+		log.Printf("Error parsing accessToken claims: %v", err)
+		return false, err
+	}
+
+	id.SetUserName(custom.Email)
+	id.SetDisplayName(custom.GivenName)
+	id.SetEmail(custom.Email)
+
+	log.Printf("OIDC App: %s, AppID: %s, UserID: %s", custom.AppDisplayName, custom.AppID, custom.UserID)
 
 	return true, nil
 }
@@ -185,6 +235,7 @@ func GenerateUserToken(ctx context.Context, userName string) (string, error) {
 }
 
 func UserInfo(ctx context.Context, token string) (jwt.Claims, error) {
+	log.Printf("UserInfo: token %s", token)
 	standard := jwt.Claims{}
 	if len(UserEncryptionKey) > 0 && len(UserSigningKey) > 0 {
 		enc, err := jwt.ParseSignedAndEncrypted(
@@ -234,6 +285,7 @@ func UserInfo(ctx context.Context, token string) (jwt.Claims, error) {
 }
 
 func QueryInfo(ctx context.Context, tokenString string, issuer string) (string, error) {
+	log.Printf("QueryInfo: token %s", tokenString)
 	standard := jwt.Claims{}
 	token, err := jwt.ParseSigned(tokenString, []jose.SignatureAlgorithm{jose.HS256})
 	if err != nil {

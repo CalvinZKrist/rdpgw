@@ -52,6 +52,9 @@ func (p *Processor) Process(ctx context.Context) error {
 		}
 
 		for _, message := range messages {
+			id := identity.FromCtx(ctx)
+			log.Printf("Process: username: %s, display name: %s, sessionId: %s, email: %s", id.UserName(), id.DisplayName(), id.SessionId(), id.Email())
+
 			if message.err != nil {
 				log.Printf("Cannot read message from stream %p", err)
 				continue
@@ -87,7 +90,8 @@ func (p *Processor) Process(ctx context.Context) error {
 				}
 				_, cookie := p.tunnelRequest(message.msg)
 				if p.gw.CheckPAACookie != nil {
-					if ok, _ := p.gw.CheckPAACookie(ctx, cookie); !ok {
+					ok := false
+					if ok, ctx, _ = p.gw.CheckPAACookie(ctx, cookie); !ok {
 						log.Printf("Invalid PAA cookie received from client %s", p.tunnel.User.GetAttribute(identity.AttrClientIp))
 						msg := p.tunnelResponse(E_PROXY_COOKIE_AUTHENTICATION_ACCESS_DENIED)
 						p.tunnel.Write(msg)

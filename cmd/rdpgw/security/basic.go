@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/bolkedebruin/rdpgw/cmd/rdpgw/identity"
 )
 
 var (
@@ -14,6 +16,11 @@ var (
 )
 
 func CheckHost(ctx context.Context, host string) (bool, error) {
+	id := identity.FromCtx(ctx)
+	if !id.Authenticated() {
+		return false, errors.New("User " + id.UserName() + " not authenticated.")
+	}
+
 	switch HostSelection {
 	case "any":
 		return true, nil
@@ -25,6 +32,8 @@ func CheckHost(ctx context.Context, host string) (bool, error) {
 		if s.User.UserName() == "" {
 			return false, errors.New("no valid session info or username found in context")
 		}
+
+		log.Printf("CheckHost: username: %s, display name: %s, sessionId: %s, email: %s", id.UserName(), id.DisplayName(), id.SessionId(), id.Email())
 
 		log.Printf("Checking host for user %s", s.User.UserName())
 		for _, h := range Hosts {

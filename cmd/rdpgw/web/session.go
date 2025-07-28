@@ -44,6 +44,14 @@ func InitStore(sessionKey []byte, encryptionKey []byte, storeType string, maxLen
 }
 
 func GetSession(r *http.Request) (*sessions.Session, error) {
+	// log.Printf("GetSession: request content length: %d", r.ContentLength)
+	// for name, values := range r.Header {
+    //     // name is the header key, values is a slice of values for that key
+    //     for _, value := range values {
+    //         log.Printf("\t%s: %s\n", name, value)
+    //     }
+    // }
+
 	session, err := sessionStore.Get(r, rdpGwSession)
 	if err != nil {
 		return nil, err
@@ -64,6 +72,9 @@ func GetSessionIdentity(r *http.Request) (identity.Identity, error) {
 	}
 	id := identity.NewUser()
 	id.Unmarshal(idData.([]byte))
+
+	log.Printf("GetSessionIdentity: username: %s, display name: %s, sessionId: %s, email: %s", id.UserName(), id.DisplayName(), id.SessionId(), id.Email())
+
 	return id, nil
 }
 

@@ -22,12 +22,13 @@ const (
 	MethodRDGOUT       = "RDG_OUT_DATA"
 )
 
-type CheckPAACookieFunc func(context.Context, string) (bool, error)
+type CheckPAACookieFunc func(context.Context, string) (bool, context.Context, error)
 type CheckClientNameFunc func(context.Context, string) (bool, error)
 type CheckHostFunc func(context.Context, string) (bool, error)
 
 type Gateway struct {
-	// CheckPAACookie verifies if the PAA cookie sent by the client is valid
+	// CheckPAACookie verifies if the PAA cookie sent by the client is valid, and returns the
+	// context of that cookie
 	CheckPAACookie CheckPAACookieFunc
 
 	// CheckClientName verifies if the client name is allowed to connect
@@ -61,7 +62,9 @@ func (g *Gateway) HandleGatewayProtocol(w http.ResponseWriter, r *http.Request) 
 	var t *Tunnel
 
 	ctx := r.Context()
+
 	id := identity.FromRequestCtx(r)
+	log.Printf("HandleGatewayProtocol: username: %s, display name: %s, sessionId: %s, email: %s", id.UserName(), id.DisplayName(), id.SessionId(), id.Email())
 
 	connId := r.Header.Get(rdgConnectionIdKey)
 	x, found := c.Get(connId)

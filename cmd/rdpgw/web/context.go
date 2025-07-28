@@ -3,7 +3,6 @@ package web
 import (
 	"github.com/bolkedebruin/rdpgw/cmd/rdpgw/identity"
 	"github.com/jcmturner/goidentity/v6"
-	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -24,9 +23,6 @@ func EnrichContext(next http.Handler) http.Handler {
 				return
 			}
 		}
-
-		log.Printf("Identity SessionId: %s, UserName: %s: Authenticated: %t",
-			id.SessionId(), id.UserName(), id.Authenticated())
 
 		h := r.Header.Get("X-Forwarded-For")
 		if h != "" {

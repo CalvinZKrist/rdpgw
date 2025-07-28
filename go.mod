@@ -6,13 +6,13 @@ toolchain go1.24.1
 
 require (
 	github.com/bolkedebruin/gokrb5/v8 v8.5.0
-	github.com/coreos/go-oidc/v3 v3.9.0
+	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/fatih/structs v1.1.0
 	github.com/go-jose/go-jose/v4 v4.0.5
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/gorilla/sessions v1.2.2
+	github.com/gorilla/sessions v1.4.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/jcmturner/gofork v1.7.6
 	github.com/jcmturner/goidentity/v6 v6.0.1
@@ -28,7 +28,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/thought-machine/go-flags v1.6.3
 	golang.org/x/crypto v0.36.0
-	golang.org/x/oauth2 v0.18.0
+	golang.org/x/oauth2 v0.28.0
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
 )

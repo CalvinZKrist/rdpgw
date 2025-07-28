@@ -37,6 +37,8 @@ func (c *ClientConfig) ConnectAndForward() error {
 		}
 
 		for _, message := range messages {
+			log.Printf("ConnectAndForward: Session.Id: %s, Session.User: %s, sessionId: %s, email: %s", c.Session.Id, c.Session.User)
+
 			if message.err != nil {
 				log.Printf("Cannot read message from stream %p", err)
 				continue

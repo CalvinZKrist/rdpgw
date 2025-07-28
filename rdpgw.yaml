@@ -1,0 +1,100 @@
+# web server configuration.
+Server:
+ # can be set to openid, kerberos, local and ntlm. If openid is used rdpgw expects
+ # a configured openid provider, make sure to set caps.tokenauth to true. If local
+ # rdpgw connects to rdpgw-auth over a socket to verify users and password. Note:
+ # rdpgw-auth needs to be run as root or setuid in order to work. If kerberos is
+ # used a keytab and krb5conf need to be supplied. local can be stacked with
+ # kerberos or ntlm authentication, so that the clients selects what it wants.
+ Authentication:
+  # - kerberos
+  # - local
+  - openid
+  # - ntlm
+ # The socket to connect to if using local auth. Ensure rdpgw auth is configured to
+ # use the same socket.
+ # AuthSocket: /tmp/rdpgw-auth.sock
+ # Basic auth timeout (in seconds). Useful if you're planning on waiting for MFA
+ BasicAuthTimeout: 5
+ # The default option 'auto' uses a certificate file if provided and found otherwise
+ # it uses letsencrypt to obtain a certificate, the latter requires that the host is reachable
+ # from letsencrypt servers. If TLS termination happens somewhere else (e.g. a load balancer)
+ # set this option to 'disable'. This is mutually exclusive with 'authentication: local'
+ # Note: rdp connections over a gateway require TLS
+ Tls: auto
+#  Tls: enable
+#  CertFile: cert.pem
+#  KeyFile: key.pem
+ # gateway address advertised in the rdp files and browser
+ GatewayAddress: corsha-rdp-gateway.eastus.cloudapp.azure.com
+ # port to listen on (change to 80 or equivalent if not using TLS)
+ Port: 443
+ # list of acceptable desktop hosts to connect to
+ Hosts:
+  - 52.186.181.133:3389
+ # if true the server randomly selects a host to connect to
+ # valid options are:
+ #  - roundrobin, which selects a random host from the list (default)
+ #  - signed, a listed host specified in the signed query parameter
+ #  - unsigned, a listed host specified in the query parameter
+ #  - any, insecurely allow any host specified in the query parameter
+ HostSelection: roundrobin
+ # a random strings of at least 32 characters to secure cookies on the client
+ # make sure to share this across the different pods
+ SessionKey: thisisasessionkeyreplacethisjetzt
+ SessionEncryptionKey: thisisasessionkeyreplacethisnunu!
+  # where to store session details. This can be either file or cookie (default: cookie)
+  # if a file store is chosen, it is required to have clients 'keep state' to the rdpgw
+  # instance they are connected to.
+ SessionStore: file
+  # tries to set the receive / send buffer of the connections to the client
+ # in case of high latency high bandwidth the defaults set by the OS might
+ # be to low for a good experience
+ # ReceiveBuf: 12582912
+ # SendBuf: 12582912
+# Open ID Connect specific settings
+OpenId:
+ ProviderUrl: https://login.microsoftonline.com/71db9ef0-758d-49ec-ae44-b940ee3947f0/v2.0
+ ClientId: 97796bd8-5879-4880-84cb-7c973ee4e803
+ ClientSecret: <redacted>
+
+Caps:
+ SmartCardAuth: false
+ # required for openid connect
+ TokenAuth: true
+ # connection timeout in minutes, 0 is limitless
+ IdleTimeout: 10
+ EnablePrinter: true
+ EnablePort: true
+ EnablePnp: true
+ EnableDrive: true
+ EnableClipboard: true
+Client:
+  # template rdp file to use for clients
+  # rdp file settings and their defaults see here:
+  # https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files
+  defaults: /etc/rdpgw/default.rdp
+  # this is a go string templated with {{ username }} and {{ token }}
+  # the example below uses the ASCII field separator to distinguish
+  # between user and token
+  UsernameTemplate: "{{ username }}\x1f{{ token }}"
+  # If true puts splits "user@domain.com" into the user and domain component so that
+  # domain gets set in the rdp file and the domain name is stripped from the username
+  SplitUserDomain: false
+  # If true, removes "username" (and "domain" if SplitUserDomain is true) from RDP file.
+  # NoUsername: true
+Security:
+  # a random string of 32 characters to secure cookies on the client
+  # make sure to share this amongst different pods
+  PAATokenSigningKey: thisisasessionkeyreplacethisjetzt
+  # PAATokenEncryptionKey: thisisasessionkeyreplacethisjetzt
+  # a random string of 32 characters to secure cookies on the client
+  UserTokenEncryptionKey: thisisasessionkeyreplacethisjetzt
+  # Signing makes the token bigger and we are limited to 511 characters
+  # UserTokenSigningKey: thisisasessionkeyreplacethisjetzt
+  # if you want to enable token generation for the user
+  # if true the username will be set to a jwt with the username embedded into it
+  EnableUserToken: true
+  # Verifies if the ip used to connect to download the rdp file equals from where the
+  # connection is opened.
+  VerifyClientIp: true
