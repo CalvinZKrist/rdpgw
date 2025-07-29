@@ -91,7 +91,7 @@ func (p *Processor) Process(ctx context.Context) error {
 				_, cookie := p.tunnelRequest(message.msg)
 				if p.gw.CheckPAACookie != nil {
 					ok := false
-					if ok, ctx, _ = p.gw.CheckPAACookie(ctx, cookie); !ok {
+					if ok, _ = p.gw.CheckPAACookie(ctx, cookie); !ok {
 						log.Printf("Invalid PAA cookie received from client %s", p.tunnel.User.GetAttribute(identity.AttrClientIp))
 						msg := p.tunnelResponse(E_PROXY_COOKIE_AUTHENTICATION_ACCESS_DENIED)
 						p.tunnel.Write(msg)

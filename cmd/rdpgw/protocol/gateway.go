@@ -22,7 +22,7 @@ const (
 	MethodRDGOUT       = "RDG_OUT_DATA"
 )
 
-type CheckPAACookieFunc func(context.Context, string) (bool, context.Context, error)
+type CheckPAACookieFunc func(context.Context, string) (bool, error)
 type CheckClientNameFunc func(context.Context, string) (bool, error)
 type CheckHostFunc func(context.Context, string) (bool, error)
 

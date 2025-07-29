@@ -38,7 +38,7 @@ Server:
  #  - signed, a listed host specified in the signed query parameter
  #  - unsigned, a listed host specified in the query parameter
  #  - any, insecurely allow any host specified in the query parameter
- HostSelection: roundrobin
+ HostSelection: signed
  # a random strings of at least 32 characters to secure cookies on the client
  # make sure to share this across the different pods
  SessionKey: thisisasessionkeyreplacethisjetzt
@@ -56,7 +56,7 @@ Server:
 OpenId:
  ProviderUrl: https://login.microsoftonline.com/71db9ef0-758d-49ec-ae44-b940ee3947f0/v2.0
  ClientId: 97796bd8-5879-4880-84cb-7c973ee4e803
- ClientSecret: <redacted>
+ ClientSecret: <>
 
 Caps:
  SmartCardAuth: false

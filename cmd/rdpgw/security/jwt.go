@@ -39,6 +39,7 @@ type customAccessTokenClaims struct {
 	UserID  string `json:"oid"`
 	Email  string `json:"unique_name"`
 	GivenName string `json:"given_name"`
+	UPN string `json:"upn"`
 }
 
 func CheckSession(next protocol.CheckHostFunc) protocol.CheckHostFunc {
@@ -158,7 +159,7 @@ func enrichWithOIDC(id identity.Identity, userInfo *oidc.UserInfo, accessTokenSt
 	id.SetDisplayName(custom.GivenName)
 	id.SetEmail(custom.Email)
 
-	log.Printf("OIDC App: %s, AppID: %s, UserID: %s", custom.AppDisplayName, custom.AppID, custom.UserID)
+	log.Printf("UPN: %s, OIDC App: %s, AppID: %s, UserID: %s", custom.UPN, custom.AppDisplayName, custom.AppID, custom.UserID)
 
 	return true, nil
 }
